@@ -1,10 +1,11 @@
+# coding: utf-8
 """Provide an API to convert probsenzlist to mutisenzlist."""
 
 __author__ = 'jiaying.lu'
 
 from flask import Flask
-from flask import json, abort
-from numpy import log, array
+from flask import json, request
+from numpy import log
 
 app = Flask(__name__)
 
@@ -41,22 +42,29 @@ def _ziped2muti(probSenzList_zip, prob_lower_bound):
     Returns:
         mutiSenzList
     """
-    before_stack = [{'senzList':[e], 'prob':e['prob']} for e in bar[0]]
+    #app.logger.debug('probSenzList_zip:')
+    #app.logger.debug(probSenzList_zip)
+    before_stack = [{'senzList':[e], 'prob':e['prob']} for e in probSenzList_zip[0]]
     after_stack = []
-    
-    for index in range(1, len(bar)):
-        #print('before_stack: ', before_stack)
-        #print('after_stack:',  after_stack)
+
+    for index in range(1, len(probSenzList_zip)):
+        #app.logger.debug('before_stack:')
+        #app.logger.debug(before_stack)
+        #app.logger.debug('after_stack:')
+        #app.logger.debug(after_stack)
         while before_stack != []:
             stack_elem = before_stack.pop(0)
-            for elem in bar[index]:
-                stack_elem['senzList'] += [elem]
-                stack_elem['prob'] += elem['prob']
-                if stack_elem['prob'] > prob_lower_bound:
-                    after_stack.append(stack_elem)
+            for elem in probSenzList_zip[index]:
+                after_stack_elem = {}
+                after_stack_elem['senzList'] = stack_elem['senzList'] + [elem]
+                after_stack_elem['prob'] = stack_elem['prob'] + elem['prob']
+                if after_stack_elem['prob'] > prob_lower_bound:
+                    after_stack.append(after_stack_elem)
         before_stack = after_stack
         after_stack = []
 
+    #app.logger.debug('before_stack:')
+    #app.logger.debug(before_stack)
     return before_stack
 
 
@@ -74,43 +82,52 @@ def prob2muti(probSenzList, prob_lower_bound=log(1e-30)):
     if probSenzList == []:
         return []
 
-    probSenzList_zip = array([_probSenz_zip(elem, prob_lower_bound) for elem in probSenzList])
-    #print probSenzList_zip
+    probSenzList_zip = [_probSenz_zip(elem, prob_lower_bound) for elem in probSenzList]
+    #app.logger.debug(probSenzList_zip) # DONE
 
     mutiSenzList = _ziped2muti(probSenzList_zip, prob_lower_bound)
-    # Clean unnecessary elem in mutiSenzList
-    for elem in mutiSenzList:
-        elem['senzList'].pop('prob')
+    #app.logger.debug(mutiSenzList)
 
     return mutiSenzList
 
 
-@app.route('/mutiSenzList')
-@app.route('/mutiSenzList/<params>')
-def converter(params=''):
-    app.logger.debug('Enter converter(), params: %s' % (params))
+@app.route('/senzlist/prob2muti/', methods=['POST'])
+def converter():
+    #app.logger.debug('Enter converter(), params: %s' % (request.data))
+    #import time
+    #start = time.time()
+
+    result = {'code':1, 'message':''}
     
     # params JSON validate
     try:
-        params = json.loads(params)
+        params = json.loads(request.data)
     except ValueError, err_msg:
-        app.logger.error('[ValueError] err_msg: %s, params=%s' % (err_msg, params))
-        return abort(400)
+        #app.logger.error('[ValueError] err_msg: %s, params=%s' % (err_msg, params))
+        result['message'] = 'Unvalid params: NOT a JSON Object'
+        return json.dumps(result)
 
     # params key checking
     try:
-        probSenzList = array(params['probSenzList'], dtype=float)
+        probSenzList = params['probSenzList']
         strategy = params['strategy']
     except KeyError, err_msg:
-        app.logger.error("[KeyError] can't find key=%s in params=%s" % (err_msg, params))
-        return abort(400)
+        #app.logger.error("[KeyError] can't find key=%s in params=%s" % (err_msg, params))
+        result['message'] = "Params content Error: cant't find key=%s"
+        return json.dumps(result)
     
-    mutiSenzList = prob2muti(probSenzList)
-    return json.dumps(mutiSenzList)
+    # TODO: 不同策略不同处理
+    if strategy == 'SELECT_MAX_PROB':
+        result['code'] = 0
+        result['message'] = 'success'
+        result['result'] = prob2muti(probSenzList)
+
+    #app.logger.info(time.time() - start)
+    return json.dumps(result)
 
 
 if __name__ == '__main__':
-    #app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=True)
     """
     probSenzList = [
                        {
