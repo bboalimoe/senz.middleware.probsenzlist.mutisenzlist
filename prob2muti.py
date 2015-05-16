@@ -94,8 +94,6 @@ def prob2muti(probSenzList, prob_lower_bound=log(1e-30)):
 @app.route('/senzlist/prob2muti/', methods=['POST'])
 def converter():
     #app.logger.debug('Enter converter(), params: %s' % (request.data))
-    #import time
-    #start = time.time()
 
     result = {'code':1, 'message':''}
     
@@ -117,41 +115,13 @@ def converter():
         return json.dumps(result)
     
     # TODO: 不同策略不同处理
-    if strategy == 'SELECT_MAX_PROB':
-        result['code'] = 0
-        result['message'] = 'success'
-        result['result'] = prob2muti(probSenzList)
+    #if strategy == 'SELECT_MAX_PROB':
+    result['code'] = 0
+    result['message'] = 'success'
+    result['result'] = prob2muti(probSenzList, log(1e-30))
 
-    #app.logger.info(time.time() - start)
     return json.dumps(result)
 
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
-    """
-    probSenzList = [
-                       {
-                        "motion": {
-                            "Riding": 9.94268884532027e-11,
-                            "Walking": 0.8979591835334749,
-                            "Running": 0.08163265323813619,
-                            "Driving": 0.02040816312895674,
-                            "Sitting": 7.69994010250898e-98
-                        },
-                        "location": {
-                            "restaurant": 0.213423,
-                            "resident": 0.235434542,
-                        },
-                        "sound": {
-                            "talk":0.234234523454,
-                        }
-                       },
-                       {
-                        'motion': {'Running':1.29321983128e-8},
-                        'location': {'school':3.14},
-                        'sound': {'talk': 2.3324e-12},
-                       }
-                   ]
-
-    prob2muti(probSenzList)
-    """

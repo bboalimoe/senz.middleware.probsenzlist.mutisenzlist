@@ -3,10 +3,16 @@
 __author__ = 'jiaying.lu'
 
 import unittest
+import os
 from numpy import log
 from prob2muti import _probSenz_zip
+from prob2muti import app
+from flask import json
 
 class TestBasicMethods(unittest.TestCase):
+    """
+    Test some basic functions.
+    """
 
     def test_probSenz_zip(self):
         # case 1
@@ -42,7 +48,72 @@ class TestBasicMethods(unittest.TestCase):
         self.assertEqual([], _probSenz_zip(probSenzList_elem, 0))
 
 
+class TestProb2mutiApp(unittest.TestCase):
+    """
+    Test app workflow.
+    """
+    
+    def setUp(self):
+        app.config['TESTING'] = True
+        self.app = app.test_client()
+
+    def tearDown(self):
+        pass
+
+    def test_empty_params(self):
+        rv = self.app.post('/senzlist/prob2muti/', data='')
+        self.assertEqual(200, rv.status_code)
+        result = json.loads(rv.data)
+        self.assertEqual(1, result['code'])
+
+    def test_unvalid_params(self):
+        rv = self.app.post('/senzlist/prob2muti/', data='OhMyParams')
+        self.assertEqual(200, rv.status_code)
+        result = json.loads(rv.data)
+        self.assertEqual(1, result['code'])
+    
+    def test_valid_params(self):
+        data = {
+            "probSenzList": [
+                {
+                    "motion": {
+                        "Riding": 9.94268884532027e-11,
+                        "Walking": 0.8979591835334749,
+                        "Running": 0.08163265323813619,
+                        "Driving": 0.02040816312895674,
+                        "Sitting": 7.69994010250898e-98
+                    },
+                    "location": {
+                        "restaurant": 0.213423,
+                        "resident": 0.235434542
+                    },
+                    "sound": {
+                        "talk": 0.234234523454
+                    },
+                    "timestamp": 1297923712
+                },
+
+                {
+                    "motion": {
+                        "Dancing": 8.746278e-21,
+                        "HIHI": 12
+                    },
+                    "location": {
+                        "school": 3.14
+                    },
+                    "sound": {
+                        "talk": 9899
+                    },
+                    "timestamp": 8872313213421
+                }
+            ],
+            "strategy": "SELECT_MAX_PROB"
+        }
+        rv = self.app.post('/senzlist/prob2muti/', data=json.dumps(data))
+        self.assertEqual(200, rv.status_code)
+        result = json.loads(rv.data)
+        self.assertEqual(0, result['code'])
+
+
 if __name__ == '__main__':
-    #unittest.main()
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestBasicMethods)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    unittest.main(verbosity=2)
