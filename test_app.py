@@ -1,11 +1,11 @@
-"""Unit test for prob2muti.py"""
+"""Unit test for app.py"""
 
 __author__ = 'jiaying.lu'
 
 import unittest
 from numpy import log
-from prob2muti import _probSenz_zip
-from prob2muti import app
+from app import _probSenz_zip
+from app import app
 from flask import json
 
 class TestBasicMethods(unittest.TestCase):
