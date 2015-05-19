@@ -109,6 +109,7 @@ def converter():
     try:
         probSenzList = params['probSenzList']
         strategy = params['strategy']
+        mutiSenzList_max_num = params.get('maxNum' ,500) 
     except KeyError, err_msg:
         #app.logger.error("[KeyError] can't find key=%s in params=%s" % (err_msg, params))
         result['message'] = "Params content Error: cant't find key=%s"
@@ -118,7 +119,9 @@ def converter():
     #if strategy == 'SELECT_MAX_PROB':
     result['code'] = 0
     result['message'] = 'success'
-    result['result'] = prob2muti(probSenzList, log(1e-30))[:500]
+    mutiSenzList = prob2muti(probSenzList, log(1e-30))
+    mutiSenzList = sorted(mutiSenzList, key=lambda elem: elem['prob'], reverse=True)
+    result['result'] = mutiSenzList[:mutiSenzList_max_num]
 
     return json.dumps(result)
 
