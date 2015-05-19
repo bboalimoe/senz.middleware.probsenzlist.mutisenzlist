@@ -1,2 +1,1 @@
-Flask==0.10.x
-numpy==1.9.2
+numpy
