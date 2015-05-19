@@ -42,16 +42,14 @@ def _ziped2muti(probSenzList_zip, prob_lower_bound):
     Returns:
         mutiSenzList
     """
-    #app.logger.debug('probSenzList_zip:')
-    #app.logger.debug(probSenzList_zip)
+    # TODO: use collections.deque to replace list if faster removal needed
+    print('probSenzList_zip: ', len(probSenzList_zip))
     before_stack = [{'senzList':[e], 'prob':e['prob']} for e in probSenzList_zip[0]]
     after_stack = []
 
     for index in range(1, len(probSenzList_zip)):
-        #app.logger.debug('before_stack:')
-        #app.logger.debug(before_stack)
-        #app.logger.debug('after_stack:')
-        #app.logger.debug(after_stack)
+        print('0 before_stack ', len(before_stack))
+        print('0 after_stack ', len(after_stack))
         while before_stack != []:
             stack_elem = before_stack.pop(0)
             for elem in probSenzList_zip[index]:
@@ -60,11 +58,13 @@ def _ziped2muti(probSenzList_zip, prob_lower_bound):
                 after_stack_elem['prob'] = stack_elem['prob'] + elem['prob']
                 if after_stack_elem['prob'] > prob_lower_bound:
                     after_stack.append(after_stack_elem)
+        print('1 before_stack ', len(before_stack))
+        print('1 after_stack ', len(after_stack))
         before_stack = after_stack
         after_stack = []
+        print('2 before_stack ', len(before_stack))
+        print('2 after_stack ', len(after_stack))
 
-    #app.logger.debug('before_stack:')
-    #app.logger.debug(before_stack)
     return before_stack
 
 
@@ -118,7 +118,7 @@ def converter():
     #if strategy == 'SELECT_MAX_PROB':
     result['code'] = 0
     result['message'] = 'success'
-    result['result'] = prob2muti(probSenzList, log(1e-30))
+    result['result'] = prob2muti(probSenzList, log(1e-30))[:500]
 
     return json.dumps(result)
 

@@ -3,7 +3,6 @@
 __author__ = 'jiaying.lu'
 
 import unittest
-import os
 from numpy import log
 from prob2muti import _probSenz_zip
 from prob2muti import app
@@ -77,35 +76,83 @@ class TestProb2mutiApp(unittest.TestCase):
             "probSenzList": [
                 {
                     "motion": {
-                        "Riding": 9.94268884532027e-11,
-                        "Walking": 0.8979591835334749,
-                        "Running": 0.08163265323813619,
-                        "Driving": 0.02040816312895674,
-                        "Sitting": 7.69994010250898e-98
+                        "Riding": 0.2457,
+                        "Walking": 0.2863,
+                        "Running": 0.3112,
+                        "Driving": 0.1,
+                        "Sitting": 0.0577
                     },
                     "location": {
-                        "restaurant": 0.213423,
-                        "resident": 0.235434542
+                        "restaurant": 0.621,
+                        "resident": 0.379
                     },
                     "sound": {
-                        "talk": 0.234234523454
+                        "talk": 0.2342,
+                        "shot": 0.4321,
+                        "sing": 0.3337
                     },
                     "timestamp": 1297923712
                 },
 
                 {
                     "motion": {
-                        "Dancing": 8.746278e-21,
-                        "HIHI": 12
+                        "Riding": 0.2457,
+                        "Walking": 0.2863,
+                        "Running": 0.3112,
+                        "Driving": 0.1,
+                        "Sitting": 0.0577
                     },
                     "location": {
-                        "school": 3.14
+                        "restaurant": 0.621,
+                        "resident": 0.379
                     },
                     "sound": {
-                        "talk": 9899
+                        "talk": 0.2342,
+                        "shot": 0.4321,
+                        "sing": 0.3337
                     },
-                    "timestamp": 8872313213421
-                }
+                    "timestamp": 1297923712
+                },
+
+                {
+                    "motion": {
+                        "Riding": 0.2457,
+                        "Walking": 0.2863,
+                        "Running": 0.3112,
+                        "Driving": 0.1,
+                        "Sitting": 0.0577
+                    },
+                    "location": {
+                        "restaurant": 0.621,
+                        "resident": 0.379
+                    },
+                    "sound": {
+                        "talk": 0.2342,
+                        "shot": 0.4321,
+                        "sing": 0.3337
+                    },
+                    "timestamp": 1297923712
+                },
+
+                {
+                    "motion": {
+                        "Riding": 0.2457,
+                        "Walking": 0.2863,
+                        "Running": 0.3112,
+                        "Driving": 0.1,
+                        "Sitting": 0.0577
+                    },
+                    "location": {
+                        "restaurant": 0.621,
+                        "resident": 0.379
+                    },
+                    "sound": {
+                        "talk": 0.2342,
+                        "shot": 0.4321,
+                        "sing": 0.3337
+                    },
+                    "timestamp": 1297923712
+                },
             ],
             "strategy": "SELECT_MAX_PROB"
         }
