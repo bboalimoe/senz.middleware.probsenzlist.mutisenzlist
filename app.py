@@ -91,6 +91,62 @@ def prob2muti(probSenzList, prob_lower_bound=log(1e-30)):
     return mutiSenzList
 
 
+def _probSenz_zip_top_N(probSenzList_elem, top_N, prob_lower_bound):
+    """
+    Zip one elem of probSenzList
+    
+    Args:
+        probSenzList_elem: dict, one elem of probSenzList
+        top_N:
+        prob_lower_bound: float, should return senz list whose probability is 
+                     greater than lower_bound
+    Returns:
+        senzList_elem_candidates: list, like [{}, {}, {}]
+
+    """
+    senzList_elem_candidates = []
+    probSenzList_elem_processed = {}
+    dict_sorted = lambda dt: sorted(dt.iteritems(), key=lambda d: d[1], reverse=True)
+
+    for key, value in probSenzList_elem.iteritems():
+        probSenzList_elem_processed[key] = dict_sorted(value)
+
+    for i in xrange(top_N):
+        senzList_elem_candidate = {'prob': 0.0}
+        for key, value in probSenzList_elem_processed.iteritems():
+            senzList_elem_candidate[key] = value[i if i<len(value) else len(value)-1][0]
+            senzList_elem_candidate['prob'] += log(value[i if i<len(value) else len(value)-1][1])
+        if senzList_elem_candidate['prob'] > prob_lower_bound:
+            senzList_elem_candidates.append(senzList_elem_candidate)
+    
+    return senzList_elem_candidates
+
+
+def prob2muti_quick(probSenzList, top_N, prob_lower_bound=log(1e-30)):
+    """
+    Convert probSenzList to mutiSenList quickly.
+
+    Because prob2mut() which calculate every potential result cost too much resource.
+
+    Args:
+        probSenzList: list
+        top_N: 只算最大的top_N个
+        prob_lower_bound: float, should return senz list whose probability is 
+                     greater than lower_bound
+    Returns:
+        mutiSenzList: list, and its prob has been log(prob)
+    """
+    if probSenzList == []:
+        return []
+
+    probSenzList_zip = [_probSenz_zip_top_N(elem, top_N, prob_lower_bound) for elem in probSenzList]
+    #app.logger.debug(probSenzList_zip) # DONE
+
+    #TODO: 完成第二步
+    mutiSenzList = _ziped2muti(probSenzList_zip, prob_lower_bound)
+    #app.logger.debug(mutiSenzList)
+
+
 @app.route('/senzlist/prob2muti/', methods=['POST'])
 def converter():
     #app.logger.debug('Enter converter(), params: %s' % (request.data))
@@ -107,21 +163,28 @@ def converter():
 
     # params key checking
     try:
-        probSenzList = params['probSenzList']
+        prob_senzlist = params['probSenzList']
         strategy = params['strategy']
-        mutiSenzList_max_num = params.get('maxNum' ,500) 
+        mutiSenzList_max_num = params.get('mutiMaxNum', 3) 
     except KeyError, err_msg:
         #app.logger.error("[KeyError] can't find key=%s in params=%s" % (err_msg, params))
         result['message'] = "Params content Error: cant't find key=%s"
         return json.dumps(result)
     
     # TODO: 不同策略不同处理
-    #if strategy == 'SELECT_MAX_PROB':
-    result['code'] = 0
-    result['message'] = 'success'
-    mutiSenzList = prob2muti(probSenzList, log(1e-30))
-    mutiSenzList = sorted(mutiSenzList, key=lambda elem: elem['prob'], reverse=True)
-    result['result'] = mutiSenzList[:mutiSenzList_max_num]
+    if strategy == 'SELECT_MAX_PROB':
+        result['code'] = 0
+        result['message'] = 'success'
+        muti_senzlist = prob2muti(prob_senzlist, log(1e-30))
+        muti_senzlist = sorted(muti_senzlist, key=lambda elem: elem['prob'], reverse=True)
+        result['result'] = muti_senzlist[:mutiSenzList_max_num]
+    if strategy == 'SELECT_MAX_N_PROB':
+        result['code'] = 0
+        result['message'] = 'success'
+        muti_senzlist = prob2muti_quick(prob_senzlist, mutiSenzList_max_num, log(1e-30))
+        result['result'] = muti_senzlist
+    else:
+        result['message'] = 'strategy error'
 
     return json.dumps(result)
 
