@@ -108,9 +108,12 @@ def _probSenz_zip_top_N(probSenzList_elem, top_N, prob_lower_bound):
     probSenzList_elem_processed = {}
     dict_sorted = lambda dt: sorted(dt.iteritems(), key=lambda d: d[1], reverse=True)
 
+    other_keys = []
     for key, value in probSenzList_elem.iteritems():
-        if key != 'timestamp':
+        if key in ['motion', 'location', 'sound']:
             probSenzList_elem_processed[key] = dict_sorted(value)
+        else:
+            other_keys.append(key)
 
     for i in xrange(top_N):
         senzList_elem_candidate = {'prob': 0.0}
@@ -118,7 +121,8 @@ def _probSenz_zip_top_N(probSenzList_elem, top_N, prob_lower_bound):
             senzList_elem_candidate[key] = value[i if i<len(value) else len(value)-1][0]
             senzList_elem_candidate['prob'] += log(value[i if i<len(value) else len(value)-1][1])
         # TODO: 看要不要加timestamp
-        #senzList_elem_candidate['timestamp'] = probSenzList_elem['timestamp']
+        for key in other_keys:
+            senzList_elem_candidate[key] = probSenzList_elem[key]
         if senzList_elem_candidate['prob'] > prob_lower_bound:
             senzList_elem_candidates.append(senzList_elem_candidate)
     
