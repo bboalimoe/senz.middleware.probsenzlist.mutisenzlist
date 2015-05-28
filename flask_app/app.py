@@ -6,6 +6,7 @@ __author__ = 'jiaying.lu'
 from flask import Flask
 from flask import json, request
 from numpy import log
+from logger import logger
 
 app = Flask(__name__)
 
@@ -43,13 +44,13 @@ def _ziped2muti(probSenzList_zip, prob_lower_bound):
         mutiSenzList
     """
     # TODO: use collections.deque to replace list if faster removal needed
-    print('probSenzList_zip: ', len(probSenzList_zip))
+    logger.debug('[_ziped2muti] probSenzList_zip: ', len(probSenzList_zip))
     before_stack = [{'senzList':[e], 'prob':e['prob']} for e in probSenzList_zip[0]]
     after_stack = []
 
     for index in range(1, len(probSenzList_zip)):
-        print('0 before_stack ', len(before_stack))
-        print('0 after_stack ', len(after_stack))
+        #print('0 before_stack ', len(before_stack))
+        #print('0 after_stack ', len(after_stack))
         while before_stack != []:
             stack_elem = before_stack.pop(0)
             for elem in probSenzList_zip[index]:
@@ -58,12 +59,12 @@ def _ziped2muti(probSenzList_zip, prob_lower_bound):
                 after_stack_elem['prob'] = stack_elem['prob'] + elem['prob']
                 if after_stack_elem['prob'] > prob_lower_bound:
                     after_stack.append(after_stack_elem)
-        print('1 before_stack ', len(before_stack))
-        print('1 after_stack ', len(after_stack))
+        #print('1 before_stack ', len(before_stack))
+        #print('1 after_stack ', len(after_stack))
         before_stack = after_stack
         after_stack = []
-        print('2 before_stack ', len(before_stack))
-        print('2 after_stack ', len(after_stack))
+        #print('2 before_stack ', len(before_stack))
+        #print('2 after_stack ', len(after_stack))
 
     return before_stack
 
@@ -83,10 +84,10 @@ def prob2muti(probSenzList, prob_lower_bound=log(1e-30)):
         return []
 
     probSenzList_zip = [_probSenz_zip(elem, prob_lower_bound) for elem in probSenzList]
-    #app.logger.debug(probSenzList_zip) # DONE
+    #logger.debug(probSenzList_zip) # DONE
 
     mutiSenzList = _ziped2muti(probSenzList_zip, prob_lower_bound)
-    #app.logger.debug(mutiSenzList)
+    #logger.debug(mutiSenzList)
 
     return mutiSenzList
 
@@ -181,7 +182,7 @@ def prob2muti_quick(probSenzList, top_N, prob_lower_bound=log(1e-30)):
 
 @app.route('/senzlist/prob2muti/', methods=['POST'])
 def converter():
-    #app.logger.debug('Enter converter(), params: %s' % (request.data))
+    logger.debug('[Enter converter()] params: %s' % (request.data))
 
     result = {'code':1, 'message':''}
     
@@ -189,7 +190,7 @@ def converter():
     try:
         params = json.loads(request.data)
     except ValueError, err_msg:
-        #app.logger.error('[ValueError] err_msg: %s, params=%s' % (err_msg, params))
+        logger.error('[ValueError] err_msg: %s, params=%s' % (err_msg, request.data))
         result['message'] = 'Unvalid params: NOT a JSON Object'
         return json.dumps(result)
 
@@ -199,7 +200,7 @@ def converter():
         strategy = params['strategy']
         mutiSenzList_max_num = params.get('mutiMaxNum', 3) 
     except KeyError, err_msg:
-        #app.logger.error("[KeyError] can't find key=%s in params=%s" % (err_msg, params))
+        logger.error("[KeyError] can't find key=%s in params=%s" % (err_msg, params))
         result['message'] = "Params content Error: cant't find key=%s"
         return json.dumps(result)
     
@@ -218,117 +219,10 @@ def converter():
     else:
         result['message'] = 'strategy error'
 
+    logger.info('[converter success] strategy:%s, code:%s, result_len:%s' %(strategy, result['code'], len(result)))
     return json.dumps(result)
 
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
-    """
-    probSenzList_elem = {
-                         "motion": {
-                             "Riding": 9.94268884532027e-11,
-                             "Walking": 0.8979591835334749,
-                             "Running": 0.08163265323813619,
-                             "Driving": 0.02040816312895674,
-                             "Sitting": 7.69994010250898e-98
-                         },
-                         "location": {
-                             "restaurant": 0.213423,
-                             "resident": 0.235434542,
-                         },
-                         "sound": {
-                             "talk":0.234234523454,
-                         },
-                         "timestamp": 1297923712
-                        }
-    #senzList_elem_candidate = [{'motion': 'Walking', 'sound': 'talk', 'prob': -3.0053854503466702, 'location': 'resident'}, {'motion': 'Running', 'sound': 'talk', 'prob': -5.5014375304723426, 'location': 'restaurant'}, {'motion': 'Driving', 'sound': 'talk', 'prob': -6.8877319004405226, 'location': 'restaurant'}]
-    result = _probSenz_zip_top_N(probSenzList_elem, 3, log(1e-30))
-    print result
-    """
-    """
-    data = {
-        "probSenzList": [
-            {
-                "motion": {
-                    "Riding": 0.2457,
-                    "Walking": 0.2863,
-                    "Running": 0.3112,
-                    "Driving": 0.1,
-                    "Sitting": 0.0577
-                },
-                "location": {
-                    "restaurant": 0.621,
-                    "resident": 0.379
-                },
-                "sound": {
-                    "talk": 0.2342,
-                    "shot": 0.4321,
-                    "sing": 0.3337
-                },
-                "timestamp": 1297923712
-            },
 
-            {
-                "motion": {
-                    "Riding": 0.2457,
-                    "Walking": 0.2863,
-                    "Running": 0.3112,
-                    "Driving": 0.1,
-                    "Sitting": 0.0577
-                },
-                "location": {
-                    "restaurant": 0.621,
-                    "resident": 0.379
-                },
-                "sound": {
-                    "talk": 0.2342,
-                    "shot": 0.4321,
-                    "sing": 0.3337
-                },
-                "timestamp": 1297923712
-            },
-
-            {
-                "motion": {
-                    "Riding": 0.2457,
-                    "Walking": 0.2863,
-                    "Running": 0.3112,
-                    "Driving": 0.1,
-                    "Sitting": 0.0577
-                },
-                "location": {
-                    "restaurant": 0.621,
-                    "resident": 0.379
-                },
-                "sound": {
-                    "talk": 0.2342,
-                    "shot": 0.4321,
-                    "sing": 0.3337
-                },
-                "timestamp": 1297923712
-            },
-
-            {
-                "motion": {
-                    "Riding": 0.2457,
-                    "Walking": 0.2863,
-                    "Running": 0.3112,
-                    "Driving": 0.1,
-                    "Sitting": 0.0577
-                },
-                "location": {
-                    "restaurant": 0.621,
-                    "resident": 0.379
-                },
-                "sound": {
-                    "talk": 0.2342,
-                    "shot": 0.4321,
-                    "sing": 0.3337
-                },
-                "timestamp": 1297923712
-            },
-        ],
-        "strategy": "SELECT_MAX_PROB"
-    }
-    print(prob2muti_quick(data['probSenzList'], 3))
-    """
