@@ -1,0 +1,22 @@
+@app.before_first_request
+def init_before_first_request():
+    import datetime
+
+    init_tag = "[Initiation of Service Process]\n"
+
+    # Configure Bugsnag
+    bugsnag.configure(
+        api_key=BUGSNAG_TOKEN,
+        project_root=os.path.dirname(os.path.realpath(__file__)),
+    )
+    # Attach Bugsnag to Flask's exception handler
+    handle_exceptions(app)
+
+    log_init_time = "Initiation START at: \t%s\n" % datetime.datetime.now()
+    log_app_env = "Environment Variable: \t%s\n" % APP_ENV
+    log_bugsnag_token = "Bugsnag Service TOKEN: \t%s\n" % BUGSNAG_TOKEN
+    log_logentries_token = "Logentries Service TOKEN: \t%s\n" % LOGENTRIES_TOKEN
+    logger.info(init_tag + log_init_time)
+    logger.info(init_tag + log_app_env)
+    logger.info(init_tag + log_bugsnag_token)
+    logger.info(init_tag + log_logentries_token)
