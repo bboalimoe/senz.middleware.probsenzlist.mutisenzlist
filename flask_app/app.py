@@ -6,9 +6,31 @@ __author__ = 'jiaying.lu'
 from flask import Flask
 from flask import json, request
 from numpy import log
-from logger import logger
+import os
+
+from config import *
+import bugsnag
+from bugsnag.flask import handle_exceptions
+import logging
+from logentries import LogentriesHandler
+
+# Configure Logentries
+logger = logging.getLogger('logentries')
+logger.setLevel(logging.INFO)
+test = LogentriesHandler(LOGENTRIES_TOKEN)
+logger.addHandler(test)
+
+# Configure Bugsnag
+bugsnag.configure(
+    api_key=BUGSNAG_TOKEN,
+    project_root=os.path.dirname(os.path.realpath(__file__)),
+)
 
 app = Flask(__name__)
+
+# Attach Bugsnag to Flask's exception handler
+handle_exceptions(app)
+
 
 def _probSenz_zip(probSenzList_elem, prob_lower_bound):
     """
@@ -173,11 +195,27 @@ def prob2muti_quick(probSenzList, top_N, prob_lower_bound=log(1e-30)):
     probSenzList_zip = [_probSenz_zip_top_N(elem, top_N, prob_lower_bound) for elem in probSenzList]
     #app.logger.debug(probSenzList_zip) # DONE
 
-    #TODO: 完成第二步
     mutiSenzList = _ziped2muti_top_N(probSenzList_zip, top_N, prob_lower_bound)
     #app.logger.debug(mutiSenzList)
 
     return mutiSenzList
+
+
+@app.before_first_request
+def init_before_first_request():
+    import datetime
+
+    init_tag = "[Initiation of Service Process]\n"
+
+
+    log_init_time = "Initiation START at: \t%s\n" % datetime.datetime.now()
+    log_app_env = "Environment Variable: \t%s\n" % APP_ENV
+    log_bugsnag_token = "Bugsnag Service TOKEN: \t%s\n" % BUGSNAG_TOKEN
+    log_logentries_token = "Logentries Service TOKEN: \t%s\n" % LOGENTRIES_TOKEN
+    logger.info(init_tag + log_init_time)
+    logger.info(init_tag + log_app_env)
+    logger.info(init_tag + log_bugsnag_token)
+    logger.info(init_tag + log_logentries_token)
 
 
 @app.route('/senzlist/prob2muti/', methods=['POST'])
