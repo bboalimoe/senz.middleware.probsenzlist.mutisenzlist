@@ -218,7 +218,7 @@ def init_before_first_request():
     logger.info(init_tag + log_logentries_token)
 
 
-@app.route('/senzlist/prob2muti/', methods=['POST'])
+@app.route('/', methods=['POST'])
 def converter():
     logger.debug('[Enter converter()] params: %s' % (request.data))
 

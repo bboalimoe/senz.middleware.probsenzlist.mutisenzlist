@@ -89,13 +89,13 @@ class TestProb2mutiApp(unittest.TestCase):
         pass
 
     def test_empty_params(self):
-        rv = self.app.post('/senzlist/prob2muti/', data='')
+        rv = self.app.post('/', data='')
         self.assertEqual(200, rv.status_code)
         result = json.loads(rv.data)
         self.assertEqual(1, result['code'])
 
     def test_unvalid_params(self):
-        rv = self.app.post('/senzlist/prob2muti/', data='OhMyParams')
+        rv = self.app.post('/', data='OhMyParams')
         self.assertEqual(200, rv.status_code)
         result = json.loads(rv.data)
         self.assertEqual(1, result['code'])
@@ -185,7 +185,7 @@ class TestProb2mutiApp(unittest.TestCase):
             ],
             "strategy": "SELECT_MAX_PROB"
         }
-        rv = self.app.post('/senzlist/prob2muti/', data=json.dumps(data))
+        rv = self.app.post('/', data=json.dumps(data))
         self.assertEqual(200, rv.status_code)
         result = json.loads(rv.data)
         self.assertEqual(0, result['code'])
@@ -276,7 +276,7 @@ class TestProb2mutiApp(unittest.TestCase):
             ],
             "strategy": "SELECT_MAX_N_PROB"
         }
-        rv = self.app.post('/senzlist/prob2muti/', data=json.dumps(data))
+        rv = self.app.post('/', data=json.dumps(data))
         self.assertEqual(200, rv.status_code)
         result = json.loads(rv.data)
         self.assertEqual(0, result['code'])
