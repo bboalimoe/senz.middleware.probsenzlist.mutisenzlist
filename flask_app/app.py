@@ -221,14 +221,18 @@ def init_before_first_request():
 @app.route('/', methods=['POST'])
 def converter():
     logger.debug('[Enter converter()] params: %s' % (request.data))
-
     result = {'code':1, 'message':''}
-    
+
+    if request.headers.has_key('X-Request-Id'):
+        x_request_id = request.headers['X-Request-Id']
+    else:
+        x_request_id = ''
+
     # params JSON validate
     try:
         params = json.loads(request.data)
     except ValueError, err_msg:
-        logger.error('[ValueError] err_msg: %s, params=%s' % (err_msg, request.data))
+        logger.error('%s, [ValueError] err_msg: %s, params=%s' % (x_request_id, err_msg, request.data))
         result['message'] = 'Unvalid params: NOT a JSON Object'
         return json.dumps(result)
 
@@ -238,7 +242,7 @@ def converter():
         strategy = params['strategy']
         mutiSenzList_max_num = params.get('mutiMaxNum', 3) 
     except KeyError, err_msg:
-        logger.error("[KeyError] can't find key=%s in params=%s" % (err_msg, params))
+        logger.error("%s, [KeyError] can't find key=%s in params=%s" % (x_request_id, err_msg, params))
         result['message'] = "Params content Error: cant't find key=%s"
         return json.dumps(result)
     
@@ -257,7 +261,7 @@ def converter():
     else:
         result['message'] = 'strategy error'
 
-    logger.info('[converter success] strategy:%s, code:%s, result_len:%s' %(strategy, result['code'], len(result)))
+    logger.info('%s, [converter success] strategy:%s, code:%s, result_len:%s' %(x_request_id, strategy, result['code'], len(result)))
     return json.dumps(result)
 
 
