@@ -272,7 +272,7 @@ class TestProb2mutiApp(unittest.TestCase):
                         "sing": 0.3337
                     },
                     "timestamp": 1297923712
-                },
+                }
             ],
             "strategy": "SELECT_MAX_N_PROB"
         }
