@@ -3,7 +3,7 @@
 
 __author__ = 'jiaying.lu'
 
-from flask import Flask
+from flask import Flask, make_response
 from flask import json, request
 from numpy import log
 import os
@@ -246,7 +246,8 @@ def converter():
     except ValueError, err_msg:
         logger.error('<%s>, [ValueError] err_msg: %s, params=%s' % (x_request_id, err_msg, request.data))
         result['message'] = 'Unvalid params: NOT a JSON Object'
-        return json.dumps(result)
+        result['code'] = 103
+        return make_response(json.dumps(result), 400)
 
     # params key checking
     try:
@@ -255,8 +256,9 @@ def converter():
         mutiSenzList_max_num = params.get('mutiMaxNum', 3) 
     except KeyError, err_msg:
         logger.error("<%s>, [KeyError] can't find key=%s in params=%s" % (x_request_id, err_msg, params))
-        result['message'] = "Params content Error: cant't find key=%s"
-        return json.dumps(result)
+        result['message'] = "Params content Error: cant't find key=%s" % (err_msg)
+        result['code'] = 103
+        return make_response(json.dumps(result), 400)
     
     # 不同策略不同处理
     if strategy == 'SELECT_MAX_PROB':
@@ -271,12 +273,15 @@ def converter():
         muti_senzlist = prob2muti_quick(prob_senzlist, mutiSenzList_max_num, log(1e-30))
         result['result'] = muti_senzlist
     else:
+        logger.error('<%s>, [Input Error] strategy=%s should in ["SELECT_MAX_PROB", "SELECT_MAX_N_PROB"]'
+                      % (x_request_id, strategy))
         result['message'] = 'strategy error'
+        result['code'] = 103
+        return make_response(json.dumps(result), 400)
 
-    logger.info('<%s>, [convert success] strategy:%s, code:%s, result_len:%s'
-                %(x_request_id, strategy, result['code'], len(result['result'])))
+    logger.info('<%s>, [convert success] strategy:%s, code:%s, result:%s'
+                %(x_request_id, strategy, result['code'], result['result']))
     return json.dumps(result)
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
