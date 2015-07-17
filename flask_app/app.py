@@ -16,7 +16,14 @@ from logentries import LogentriesHandler
 
 # Configure Logentries
 logger = logging.getLogger('logentries')
-logger.setLevel(logging.INFO)
+if APP_ENV == 'prod':
+    logger.setLevel(logging.INFO)
+else:
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(logging.Formatter('%(asctime)s - %(name)s : %(levelname)s, %(message)s'))
+    logger.addHandler(ch)
 test = LogentriesHandler(LOGENTRIES_TOKEN)
 logger.addHandler(test)
 
@@ -142,7 +149,10 @@ def _probSenz_zip_top_N(probSenzList_elem, top_N, prob_lower_bound):
         senzList_elem_candidate = {'prob': 0.0}
         for key, value in probSenzList_elem_processed.iteritems():
             senzList_elem_candidate[key] = value[i if i<len(value) else len(value)-1][0]
-            senzList_elem_candidate['prob'] += log(value[i if i<len(value) else len(value)-1][1])
+            prob_value = value[i if i<len(value) else len(value)-1][1]
+            if prob_value == 0:
+                prob_value = (1e-128)  # log must accept value > 0
+            senzList_elem_candidate['prob'] += log(prob_value)
         # TODO: 看要不要加timestamp
         for key in other_keys:
             senzList_elem_candidate[key] = probSenzList_elem[key]
@@ -168,6 +178,8 @@ def _ziped2muti_top_N(probSenzList_zip, top_N, prob_lower_bound):
     for i in xrange(top_N):
         mutiSenzList_elem = {'prob':0.0, 'senzList':[]}
         for elem in probSenzList_zip:
+            if len(elem) <= i:
+                continue
             mutiSenzList_elem['prob'] += elem[i].pop('prob')
             mutiSenzList_elem['senzList'].append(elem[i])
         mutiSenzList.append(mutiSenzList_elem)
@@ -220,7 +232,7 @@ def init_before_first_request():
 
 @app.route('/', methods=['POST'])
 def converter():
-    logger.debug('[Enter converter()] params: %s' % (request.data))
+    logger.info('[Enter converter()] params: %s' % (request.data))
     result = {'code':1, 'message':''}
 
     if request.headers.has_key('X-Request-Id'):
@@ -246,7 +258,7 @@ def converter():
         result['message'] = "Params content Error: cant't find key=%s"
         return json.dumps(result)
     
-    # TODO: 不同策略不同处理
+    # 不同策略不同处理
     if strategy == 'SELECT_MAX_PROB':
         result['code'] = 0
         result['message'] = 'success'
@@ -261,7 +273,8 @@ def converter():
     else:
         result['message'] = 'strategy error'
 
-    logger.info('<%s>, [converter success] strategy:%s, code:%s, result_len:%s' %(x_request_id, strategy, result['code'], len(result)))
+    logger.info('<%s>, [convert success] strategy:%s, code:%s, result_len:%s'
+                %(x_request_id, strategy, result['code'], len(result['result'])))
     return json.dumps(result)
 
 
