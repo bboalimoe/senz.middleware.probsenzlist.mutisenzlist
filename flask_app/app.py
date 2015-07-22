@@ -156,8 +156,8 @@ def _probSenz_zip_top_N(probSenzList_elem, top_N, prob_lower_bound):
         # TODO: 看要不要加timestamp
         for key in other_keys:
             senzList_elem_candidate[key] = probSenzList_elem[key]
-        if senzList_elem_candidate['prob'] > prob_lower_bound:
-            senzList_elem_candidates.append(senzList_elem_candidate)
+        #if senzList_elem_candidate['prob'] > prob_lower_bound:
+        senzList_elem_candidates.append(senzList_elem_candidate)
     
     return senzList_elem_candidates
 
