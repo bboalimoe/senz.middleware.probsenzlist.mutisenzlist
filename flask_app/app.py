@@ -182,7 +182,8 @@ def _ziped2muti_top_N(probSenzList_zip, top_N, prob_lower_bound):
                 continue
             mutiSenzList_elem['prob'] += elem[i].pop('prob')
             mutiSenzList_elem['senzList'].append(elem[i])
-        mutiSenzList.append(mutiSenzList_elem)
+        if len(mutiSenzList_elem["senzList"]) > 0:
+            mutiSenzList.append(mutiSenzList_elem)
 
     return mutiSenzList
 
